@@ -17,7 +17,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=8.3",
-    "httpx>=0.28",
+    # Transport for FastAPI's TestClient; Starlette deprecated plain httpx for this.
+    "httpx2>=2.13",
     "ruff>=0.8",
 ]
 
