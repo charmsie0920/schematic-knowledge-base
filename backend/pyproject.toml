@@ -1,0 +1,41 @@
+# backend/pyproject.toml
+[project]
+name = "recall-backend"
+version = "0.1.0"
+description = "Recall: hybrid RAG knowledge engine (API and pipeline workers)."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "redis>=5.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "httpx>=0.28",
+    "ruff>=0.8",
+]
+
+[tool.uv]
+# This is an application, not a library we publish, so there is no build step.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Makes `import app` work in tests without installing the project.
+pythonpath = ["."]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["."]
+
+[tool.ruff.lint]
+# E/F: errors, I: import order, B: bug patterns, UP: modern syntax, ASYNC: async pitfalls
+select = ["E", "F", "I", "B", "UP", "ASYNC"]
