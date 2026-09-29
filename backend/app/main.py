@@ -9,10 +9,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
-from app.api import health
+from app.api import health, runs
 from app.config import Settings, get_settings
 from app.db import build_engine
 from app.redis_client import build_redis
+from app.tasks import TaskRegistry
 
 logger = logging.getLogger("recall")
 
@@ -28,10 +29,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.engine = build_engine(settings)
         app.state.redis = build_redis(settings)
+        app.state.tasks = TaskRegistry()
         logger.info("startup complete (env=%s)", settings.app_env)
         try:
             yield
         finally:
+            # Stop background work first: it still needs Redis to finish cleanly.
+            await app.state.tasks.cancel_all()
             await app.state.redis.aclose()
             await app.state.engine.dispose()
             logger.info("shutdown complete")
@@ -44,6 +48,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(health.router)
+    app.include_router(runs.router)
     return app
 
 
